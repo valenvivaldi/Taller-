@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simplee:BD xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:simplee="simpleE" xsi:schemaLocation="simpleE ../metamodelos/simpleE.ecore">
+  <entities name="perro">
+    <attributes name="dni" keys="//@entities.0/@keys.0"/>
+    <keys xsi:type="simplee:Primary_keys" name="clave perro" attributes="//@entities.0/@attributes.0"/>
+  </entities>
+  <entities name="itos" superclass="//@entities.0">
+    <attributes name="altura"/>
+    <attributes name="apodo"/>
+  </entities>
+  <relations name="rel" source="//@entities.1" destination="//@entities.0"/>
+</simplee:BD>
