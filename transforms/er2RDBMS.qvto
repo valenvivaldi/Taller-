@@ -1,0 +1,48 @@
+ modeltype ER uses 'simpleE';
+ modeltype RDB uses 'SimpleRDBMS';
+
+transformation er2RDBMS(in er : ER, out RDB);
+
+main() {
+	er.rootObjects()[ER::DiagramER]->map diagrama2Schema();
+
+}
+
+mapping ER::DiagramER::diagrama2Schema() : RDB::Schema {
+	name:= self.name;
+	tables := (self.entities-> map entity2Table(result)) ->asOrderedSet();
+	tables := tables->union(self.relations -> select(r|r.cardinality.toString()="N...N")-> relNN2table()->asOrderedSet());
+	
+	//tables := 
+}
+
+
+mapping ER::Relationship::relNN2table() : RDB::Table{
+	name:=self.name;
+//	schema:=self.;
+}
+
+
+mapping ER::Entity::entity2Table(in s : RDB::Schema) : RDB::Table{
+	name:=self.name;
+	schema:=s;
+//	columns := self.attributes -> map attributes2Columns();
+//	keys:= self.keys->map keys2RDBkeys();
+}
+
+/*
+mapping ER::Entity::obtainRelAttributes () : Set(RDB::Column){
+
+return self.obtainRelationships()->map rel2Attr(self);
+
+}
+*/
+
+
+query ER::Entity:: obtainRelationships() : Set(ER::Relationship){
+
+return Relationship.allInstances()->select(r | r.source=self or r.destination=self )->asOrderedSet();
+
+}
+
+
