@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simplerdbms:Schema xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:simplerdbms="SimpleRDBMS" xsi:schemaLocation="SimpleRDBMS ../metamodelos/SimpleRDBMS.ecore">
+  <tables name="Auto">
+    <columns name="pat" keys="//@tables.0/@keys.0"/>
+    <keys name="pk auto" columns="//@tables.0/@columns.0"/>
+  </tables>
+  <tables name="Persona">
+    <columns name="DNI" keys="//@tables.1/@keys.0"/>
+    <keys name="pk pers" columns="//@tables.1/@columns.0"/>
+  </tables>
+  <tables name="tiene"/>
+  <tables name="Compro"/>
+</simplerdbms:Schema>

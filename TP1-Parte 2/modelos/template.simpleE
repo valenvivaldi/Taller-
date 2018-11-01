@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simplee:DiagramER xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:simplee="simpleE" xsi:schemaLocation="simpleE ../metamodelos/simpleE.ecore">
+  <entities name="Persona" relationship="//@relations.0 //@relations.1">
+    <attributes name="DNI" keys="//@entities.0/@keys.0"/>
+    <keys xsi:type="simplee:Primary_keys" name="pk pers" attributes="//@entities.0/@attributes.0"/>
+  </entities>
+  <entities name="Auto" relationship="//@relations.0 //@relations.1">
+    <attributes name="pat" keys="//@entities.1/@keys.0" type="Integer"/>
+    <keys xsi:type="simplee:Primary_keys" name="pk auto" attributes="//@entities.1/@attributes.0"/>
+  </entities>
+  <relations name="tiene" source="//@entities.0" destination="//@entities.1" cardinality="N...N"/>
+  <relations name="Compro" source="//@entities.0" destination="//@entities.1" cardinality="N...N"/>
+</simplee:DiagramER>

@@ -1,0 +1,84 @@
+ modeltype ER uses 'simpleE';
+ modeltype RDB uses 'SimpleRDBMS';
+
+transformation er2RDBMS(in er : ER, out RDB);
+
+main() {
+	er.rootObjects()[ER::DiagramER]->map diagrama2Schema();
+
+}
+
+mapping ER::DiagramER::diagrama2Schema() : RDB::Schema {
+	name:= self.name;
+	tables := (self.entities-> map entity2Table()) ->asOrderedSet();
+	tables := tables->union(self.relations -> select(r|r.cardinality.toString()="N...N")-> relNN2table()->asOrderedSet());
+	
+	//tables := 
+}
+
+
+mapping ER::Relationship::relNN2table() : RDB::Table{
+	name:=self.name;
+	schema:=self.diagram.map diagrama2Schema();
+	//columns:=( (((self.source.obtainKeys() [Primary_keys]) -> map key2Column()))->union( (self.destination.obtainKeys() [Primary_keys])->key2Column()));
+	columns:=( (((self.source.obtainKeys() [Primary_keys]) -> map key2Column()))->union( (self.destination.obtainKeys() [Primary_keys])->key2Column()));
+	
+	//columns:= columns union ( ((self.source.obtainKeys()[Primary_keys])->map key2Column()) ->asOrderedSet())->union( ( (self.destination.obtainKeys()[Primary_keys])->map key2Column())->asOrderedSet());
+	keys:=( ((self.source.obtainKeys()[Primary_keys])->map keyER2keyRDB()) ->asOrderedSet())->union( ( (self.destination.obtainKeys()[Primary_keys])->map keyER2keyRDB())->asOrderedSet());
+	//ver si agregar al metamodelo un campo para ver si es primary key
+}
+
+
+mapping ER::Entity::entity2Table() : RDB::Table{
+	name:=self.name;
+	schema:=self.diagram.map diagrama2Schema();
+	columns := self.attributes -> map attribute2Column();
+	keys:= self.keys->map keyER2keyRDB();
+}
+
+/*
+mapping ER::Entity::obtainRelAttributes () : Set(RDB::Column){
+
+return self.obtainRelationships()->map rel2Attr(self);
+
+}
+*/
+
+query Set(ER::Key)::key2Column() : Set(RDB::Column)
+{
+	var col=((self.attributes)->map attribute2Column());
+	return (col->asOrderedSet());
+	
+}
+
+
+
+/*mapping ER::Key::key2Column() : RDB::Column
+{
+	name:=self.name;	
+	 ((self.attributes)->map attribute2Column());
+	
+}*/
+
+mapping ER::Key::keyER2keyRDB() : RDB::Key{
+	name:=self.name;
+	columns:= self.attributes.map attribute2Column();
+	owner:=self.entityKey.map entity2Table();
+}
+
+mapping ER::Attribute::attribute2Column() : RDB::Column{
+	name:=self.name;
+	//type:=self.type map erType2DType();
+}
+
+
+
+query ER::Entity:: obtainRelationships() : Set(ER::Relationship){
+
+	return Relationship.allInstances()->select(r | r.source=self or r.destination=self )->asOrderedSet();
+
+}
+
+query ER::Entity:: obtainKeys() : Set(Key){
+	return self.keys;
+}

@@ -1,0 +1,39 @@
+
+ 
+ 
+ modeltype ER uses 'simpleE';
+ modeltype RDB uses 'SimpleRDBMS';
+
+ 
+
+
+transformation Simpleuml_To_Rdb(in er : ER, out RDB);
+
+
+main() {
+	er.rootObjects()[ER::Diagrama]->map diagrama2Schema();
+}
+
+
+mapping ER::Diagrama::diagrama2Schema() : RDB::Schema {
+	name:= self.nombre;
+	tables := self.TodasEntidades -> map entidad2table()->asOrderedSet();
+}
+
+
+
+
+mapping ER::Entidad::entidad2table() : RDB::Table {
+	name := self.nombre;
+	columns := self.atributos -> map atributo2column(result)->sortedBy(name);	
+	}
+
+mapping ER::Atributo::atributo2column(in dueño: RDB::Table ) : RDB::Column {
+	name := self.nombre;
+	 type:= self.tipo;
+	 owner:=dueño;
+	
+	}
+	
+
+
