@@ -11,26 +11,26 @@ transformation Simpleuml_To_Rdb(in er : ER, out RDB);
 
 
 main() {
-	er.rootObjects()[ER::Diagrama]->map diagrama2Schema();
+	er.rootObjects()[ER::DiagramER]->map diagram2Schema();
 }
 
 
-mapping ER::Diagrama::diagrama2Schema() : RDB::Schema {
-	name:= self.nombre;
-	tables := self.TodasEntidades -> map entidad2table()->asOrderedSet();
+mapping ER::DiagramER::diagram2Schema() : RDB::Schema {
+	name:= self.name;
+	tables := self.entities -> map entity2table()->asOrderedSet();
 }
 
 
 
 
-mapping ER::Entidad::entidad2table() : RDB::Table {
-	name := self.nombre;
-	columns := self.atributos -> map atributo2column(result)->sortedBy(name);	
+mapping ER::Entity::entity2table() : RDB::Table {
+	name := self.name;
+	columns := self.attributes -> map attribute2Column(result)->sortedBy(name);	
 	}
 
-mapping ER::Atributo::atributo2column(in dueño: RDB::Table ) : RDB::Column {
-	name := self.nombre;
-	 type:= self.tipo;
+mapping ER::Attribute::attribute2Column(in dueño: RDB::Table) : RDB::Column {
+	name := self.name;
+	 type:= self.type.toString();
 	 owner:=dueño;
 	
 	}
