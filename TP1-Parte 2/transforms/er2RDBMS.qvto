@@ -10,52 +10,98 @@ main() {
 
 mapping ER::DiagramER::diagrama2Schema() : RDB::Schema {
 	name:= self.name;
-	tables := (self.entities-> map entity2Table()) ->asOrderedSet();
+	tables := self.entities->select(e|e.needTable())-> map entity2Table() ->asOrderedSet();
 	tables := tables->union(self.relations -> select(r|r.cardinality.toString()="N...N")-> relNN2table()->asOrderedSet());
-	self.entities->select(e| (e.child!=null) and (e.obtainRelationships()->size()=0))->map transferAttrToChild();
+	
+	
+	tables := tables->union(ER::Attribute.allInstances()->select(a|a.isMultivalued)->map multiv2table());
+	
+	self.relations->select(r|r.cardinality.toString()<>"N...N")->map tabulateRel();
+	
+}
+
+helper ER::Entity::needTable(): Boolean{
+
+	if (self.child->size()>0 and (self.isSourceOf->size()=0) and (self.isDestinationOf->size()=0) 
+		and not(self.hasMultiv()) and not (self.childHasIntersection)){
+		
+		return false;
+	};
+	
+	return true;
+}
+
+
+mapping ER::Attribute::multiv2table():RDB::Table{
+	name:= "Multivalue_"+self.name;
+	columns:=self.ofEntity.map entity2Table().keys->select(k|k.isPrimary)->first().columns->map copyColumn(result);
+	columns:=columns->union(self.map multiv2Column()->asOrderedSet());
+	var colkey:=columns;
+	var ownerkey:=result;
+	keys:= object RDB::Key{
+						name:="pk_multiv_"+self.name;
+						columns:=colkey;
+						owner:=ownerkey;
+						}; 
+	
+	foreignKeys:=self.ofEntity.keys[Primary_keys]->first().map keyER2keyRDB(self.ofEntity.map entity2Table()).map Key2FK();
+	
+	
+}
+
+mapping ER::Attribute::multiv2Column():RDB::Column{
+	name := self.name;
+	owner:= self.ofEntity.map entity2Table();
+	type:= self.type.toString();
+
+}
+
+
+
+mapping ER::Relationship::tabulateRel(){
+	if(self.cardinality.toString()="1...N"){
+		var newcols:=self.destination.map entity2Table().columns->asSet() ;
+		newcols:=newcols->union(self.source.keys[Primary_keys].attributes->map attribute2Column(self.destination.map entity2Table())->asOrderedSet());
+		newcols:=newcols->union(self.attributes->map attribute2Column(self.destination.map entity2Table())->asOrderedSet());
+		
+		self.destination.map entity2Table().columns:=newcols;
+		
+		
+		var newFK=self.destination.map entity2Table().foreignKeys->asSet();
+		newFK := newFK->union(self.source.map entity2Table().keys->select(k|k.isPrimary)->first().map Key2FK()->asOrderedSet());
+		self.destination.map entity2Table().foreignKeys:=newFK;
+		
+	}else{ // si es N a 1 o si 1 a 1
+		var newcols:=self.source.map entity2Table().columns->asSet() ;
+		
+		newcols:=newcols->union(self.destination.keys[Primary_keys].attributes->map attribute2Column(self.source.map entity2Table())->asOrderedSet());
+		
+		newcols:=newcols->union(self.attributes->map attribute2Column(self.source.map entity2Table())->asOrderedSet());
+		
+		self.source.map entity2Table().columns:=newcols;
+		var newFK=self.source.map entity2Table().foreignKeys->asSet();
+		newFK := newFK->union(self.destination.map entity2Table().keys->select(k|k.isPrimary)->first().map Key2FK()->asOrderedSet());
+		self.source.map entity2Table().foreignKeys:=newFK;
+	};
+
 	
 }
 
 
-
-query ER::Entity::transferAttrToChild(){
-var tablaPadre=self.map entity2Table();
-var tablaHijo=self.map entity2Table();
-
-tablaPadre.columns->MAPchangeColOwner(tablaHijo);
-tablaHijo.columns := tablaPadre.columns->union(tablaHijo.columns);
-
-tablaPadre.keys->MAPchangeKeyOwner(tablaHijo);
-
-tablaHijo.keys := tablaPadre.keys->union(tablaHijo.keys);
+mapping RDB::Key::Key2FK():RDB::ForeignKey{
+	name:="FK_to_"+self.owner.name+"_"+self.name;
+	refersTo:=self;
+	columns:=self.columns;
+	
 
 }
 
-query RDB::Column::MAPchangeColOwner(in nuevo:RDB::Table){
- changeColOwner(self,nuevo);
-}
-
-helper changeColOwner(out column:RDB::Column,in nuevo:RDB::Table){
- column.owner:=nuevo;
-}
-
-query RDB::Key::MAPchangeKeyOwner(in nuevo:RDB::Table){
- changeKeyOwner(self,nuevo);
-}
-
-helper changeKeyOwner(out key:RDB::Key,in nuevo:RDB::Table){
- key.owner:=nuevo;
-}
 
 mapping ER::Relationship::relNN2table() : RDB::Table{
 	name:=self.name;
 	schema:=self.diagram.map diagrama2Schema();
-	
 	columns:=self.obtenerColumnasRelNN()->map attribute2Column(result);
-	
-	
-	keys:=self.map obtainPKofRelNN()->asOrderedSet();
-	
+	keys:=self.map obtainPKofRelNN()->asOrderedSet();	
 }
 
 
@@ -89,8 +135,24 @@ query ER::Relationship::obtenerColumnasRelNN() : Set(ER::Attribute)
 mapping ER::Entity::entity2Table() : RDB::Table{
 	name:=self.name;
 	schema:=self.diagram.map diagrama2Schema();
-	columns := self.attributes -> map attribute2Column(result);
-	keys:= self.keys->map keyER2keyRDB();
+	
+	
+	
+	columns := self.attributes->select(a|a.isMultivalued=false) -> map attribute2Column(result);
+	
+	if(self.superclass<>null and not(self.superclass.needTable())){
+		columns:=self.superclass.attributes->map attribute2Column(result)->asOrderedSet()->union(columns);
+	};
+	
+	keys:= self.keys->map keyER2keyRDB(result);
+	if(self.superclass<>null){
+		keys:=keys->union(self.superclass.keys->map keyER2keyRDB(result)->asOrderedSet());
+	};
+}
+
+
+helper ER::Entity::hasMultiv():Boolean{
+	return self.attributes->select(a|a.isMultivalued)->size()>0;
 }
 
 
@@ -104,22 +166,33 @@ mapping ER::Entity::entity2Table() : RDB::Table{
 
 
 
-
-mapping ER::Key::keyER2keyRDB() : RDB::Key{
+mapping ER::Key::keyER2keyRDB(own: RDB::Table) : RDB::Key{
 	if(self.oclIsTypeOf(Primary_keys)){
 		result.isPrimary:=true;
 	};
 	
 	name:=self.name;
 	
-	owner:=self.entityKey.map entity2Table();
+	owner:=own;
 	columns:= self.attributes.map attribute2Column(owner);
 }
 
-mapping ER::Attribute::attribute2Column(in dueño: RDB::Table) : RDB::Column{
+mapping ER::Attribute::attribute2Column( own:RDB::Table) : RDB::Column{
 	name:=self.name;
+	if(self.ofRelationship<>null){
+	name:=self.ofRelationship.name+"_"+name;
+	};
+	
 	type:=self.type.toString();
-	owner:=dueño
+	owner:=own;
+}
+
+mapping  RDB::Column::copyColumn( own:RDB::Table) : RDB::Column{
+	name:=self.name;
+	
+	
+	type:=self.type;
+	owner:=own;
 }
 
 

@@ -7,8 +7,8 @@
     <details key="validationDelegates" value="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot"/>
   </eAnnotations>
   <eClassifiers xsi:type="ecore:EClass" name="Attribute" eSuperTypes="#//ER">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="keys" upperBound="-1" eType="#//Key"
-        eOpposite="#//Key/attributes"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="inKeys" upperBound="-1"
+        eType="#//Key" eOpposite="#//Key/attributes"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="isMultivalued" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="#//PrimaryType"/>
@@ -36,18 +36,19 @@
         containment="true" eOpposite="#//Key/entityKey"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="superclass" eType="#//Entity"
         eOpposite="#//Entity/child"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="child" eType="#//Entity"
-        eOpposite="#//Entity/superclass"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="child" upperBound="-1"
+        eType="#//Entity" eOpposite="#//Entity/superclass"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="diagram" lowerBound="1"
         eType="#//DiagramER" eOpposite="#//DiagramER/entities"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="isSourceOf" upperBound="-1"
         eType="#//Relationship" eOpposite="#//Relationship/source"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="isDestinationOf" upperBound="-1"
         eType="#//Relationship" eOpposite="#//Relationship/destination"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="childHasIntersection" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Key" eSuperTypes="#//ER">
     <eStructuralFeatures xsi:type="ecore:EReference" name="attributes" lowerBound="1"
-        upperBound="-1" eType="#//Attribute" eOpposite="#//Attribute/keys"/>
+        upperBound="-1" eType="#//Attribute" eOpposite="#//Attribute/inKeys"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="entityKey" lowerBound="1"
         eType="#//Entity" eOpposite="#//Entity/keys"/>
   </eClassifiers>
