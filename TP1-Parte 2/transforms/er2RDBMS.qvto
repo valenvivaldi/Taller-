@@ -44,7 +44,7 @@ mapping ER::Attribute::multiv2table():RDB::Table{
 						owner:=ownerkey;
 						}; 
 	
-	foreignKeys:=self.ofEntity.keys[Primary_keys]->first().map keyER2keyRDB(self.ofEntity.map entity2Table()).map Key2FK();
+	foreignKeys:=self.ofEntity.obtainKeys()[Primary_keys]->asOrderedSet()->first().map keyER2keyRDB(self.ofEntity.map entity2Table()).map Key2FK(result);
 	
 	
 }
@@ -60,27 +60,33 @@ mapping ER::Attribute::multiv2Column():RDB::Column{
 
 mapping ER::Relationship::tabulateRel(){
 	if(self.cardinality.toString()="1...N"){
-		var newcols:=self.destination.map entity2Table().columns->asSet() ;
-		newcols:=newcols->union(self.source.keys[Primary_keys].attributes->map attribute2Column(self.destination.map entity2Table())->asOrderedSet());
-		newcols:=newcols->union(self.attributes->map attribute2Column(self.destination.map entity2Table())->asOrderedSet());
+		var tablecols:=self.destination.map entity2Table().columns->asSet() ;
 		
-		self.destination.map entity2Table().columns:=newcols;
+		var relkeycols:=self.source.keys[Primary_keys].attributes->map attribute2Column(self.destination.map entity2Table())->asOrderedSet();
+		
+		var relcols:=self.attributes->map attribute2Column(self.destination.map entity2Table())->asOrderedSet();
+		
+		self.destination.map entity2Table().columns:=tablecols->union(relkeycols->union(relcols));
 		
 		
 		var newFK=self.destination.map entity2Table().foreignKeys->asSet();
-		newFK := newFK->union(self.source.map entity2Table().keys->select(k|k.isPrimary)->first().map Key2FK()->asOrderedSet());
+		newFK := newFK->union(self.source.map entity2Table().keys->select(k|k.isPrimary)->first().map Key2FK(self.destination.map entity2Table())->asOrderedSet());
 		self.destination.map entity2Table().foreignKeys:=newFK;
 		
 	}else{ // si es N a 1 o si 1 a 1
-		var newcols:=self.source.map entity2Table().columns->asSet() ;
+		var tablecols:=self.source.map entity2Table().columns->asSet() ;
 		
-		newcols:=newcols->union(self.destination.keys[Primary_keys].attributes->map attribute2Column(self.source.map entity2Table())->asOrderedSet());
+		var relkeycols:=self.destination.keys[Primary_keys].attributes->map attribute2Column(self.source.map entity2Table())->asOrderedSet();
 		
-		newcols:=newcols->union(self.attributes->map attribute2Column(self.source.map entity2Table())->asOrderedSet());
+		var relcols:=self.attributes->map attribute2Column(self.source.map entity2Table())->asOrderedSet();
 		
-		self.source.map entity2Table().columns:=newcols;
+		
+		
+		
+		self.source.map entity2Table().columns:=tablecols->union(relkeycols->union(relcols));
+		
 		var newFK=self.source.map entity2Table().foreignKeys->asSet();
-		newFK := newFK->union(self.destination.map entity2Table().keys->select(k|k.isPrimary)->first().map Key2FK()->asOrderedSet());
+		newFK := newFK->union(self.destination.map entity2Table().keys->select(k|k.isPrimary)->first().map Key2FK(self.source.map entity2Table())->asOrderedSet());
 		self.source.map entity2Table().foreignKeys:=newFK;
 	};
 
@@ -88,11 +94,11 @@ mapping ER::Relationship::tabulateRel(){
 }
 
 
-mapping RDB::Key::Key2FK():RDB::ForeignKey{
+mapping RDB::Key::Key2FK(own: RDB::Table):RDB::ForeignKey{
 	name:="FK_to_"+self.owner.name+"_"+self.name;
 	refersTo:=self;
 	columns:=self.columns;
-	
+	owner:=own;
 
 }
 
@@ -101,7 +107,11 @@ mapping ER::Relationship::relNN2table() : RDB::Table{
 	name:=self.name;
 	schema:=self.diagram.map diagrama2Schema();
 	columns:=self.obtenerColumnasRelNN()->map attribute2Column(result);
-	keys:=self.map obtainPKofRelNN()->asOrderedSet();	
+	keys:=self.map obtainPKofRelNN()->asOrderedSet();
+	
+	foreignKeys:=self.source.map entity2Table().keys->select(k|k.isPrimary)->first().map Key2FK(result);
+	foreignKeys := foreignKeys->union(self.destination.map entity2Table().keys->select(k|k.isPrimary)->first().map Key2FK(result)->asOrderedSet());
+		
 }
 
 
@@ -129,9 +139,6 @@ query ER::Relationship::obtenerColumnasRelNN() : Set(ER::Attribute)
 }
 
 
-
-
-
 mapping ER::Entity::entity2Table() : RDB::Table{
 	name:=self.name;
 	schema:=self.diagram.map diagrama2Schema();
@@ -154,16 +161,6 @@ mapping ER::Entity::entity2Table() : RDB::Table{
 helper ER::Entity::hasMultiv():Boolean{
 	return self.attributes->select(a|a.isMultivalued)->size()>0;
 }
-
-
-
-
-
-
-
-
-
-
 
 
 mapping ER::Key::keyER2keyRDB(own: RDB::Table) : RDB::Key{
@@ -204,5 +201,11 @@ query ER::Entity:: obtainRelationships() : Set(ER::Relationship){
 }
 
 query ER::Entity:: obtainKeys() : Set(Key){
+	
+	if(self.superclass<>null){
+		 return self.keys->union(self.superclass.obtainKeys());	
+			};
+	
 	return self.keys;
+
 }

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simplee:DiagramER xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:simplee="simpleE" xsi:schemaLocation="simpleE ../metamodelos/simpleE.ecore">
+  <entities name="Person" child="//@entities.1 //@entities.3">
+    <attributes name="dni" inKeys="//@entities.0/@keys.0"/>
+    <attributes name="name_surname"/>
+    <keys xsi:type="simplee:Primary_keys" name="pk_person" attributes="//@entities.0/@attributes.0"/>
+  </entities>
+  <entities name="Partner" superclass="//@entities.0" isSourceOf="//@relations.0">
+    <attributes name="numberOfCars" type="Integer"/>
+  </entities>
+  <entities name="CarAuto" isSourceOf="//@relations.1" isDestinationOf="//@relations.2 //@relations.0">
+    <attributes name="patent" inKeys="//@entities.2/@keys.0"/>
+    <attributes name="kilometers" type="Integer"/>
+    <attributes name="Model"/>
+    <attributes name="Brand"/>
+    <keys xsi:type="simplee:Primary_keys" name="pkPk_car" attributes="//@entities.2/@attributes.0"/>
+  </entities>
+  <entities name="Client" superclass="//@entities.0" isSourceOf="//@relations.2">
+    <attributes name="telephone" isMultivalued="true"/>
+  </entities>
+  <entities name="FeeTarifa" isDestinationOf="//@relations.1">
+    <attributes name="name" inKeys="//@entities.4/@keys.0"/>
+    <keys xsi:type="simplee:Primary_keys" name="pk_fee" attributes="//@entities.4/@attributes.0"/>
+  </entities>
+  <relations name="isOwner" source="//@entities.1" destination="//@entities.2" cardinality="1...N"/>
+  <relations name="PricePerKm" source="//@entities.2" destination="//@entities.4" cardinality="N...N">
+    <attributes name="amount" type="Real"/>
+  </relations>
+  <relations name="Rental" source="//@entities.3" destination="//@entities.2">
+    <attributes name="code" type="Integer"/>
+    <attributes name="date"/>
+    <attributes name="km" type="Integer"/>
+    <attributes name="amout" type="Integer"/>
+  </relations>
+</simplee:DiagramER>
