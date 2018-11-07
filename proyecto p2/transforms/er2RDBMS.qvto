@@ -40,6 +40,7 @@ mapping ER::Attribute::multiv2table():RDB::Table{
 	var ownerkey:=result;
 	keys:= object RDB::Key{
 						name:="pk_multiv_"+self.name;
+						isPrimary:=true;
 						columns:=colkey;
 						owner:=ownerkey;
 						}; 
@@ -60,9 +61,9 @@ mapping ER::Attribute::multiv2Column():RDB::Column{
 
 mapping ER::Relationship::tabulateRel(){
 	if(self.cardinality.toString()="1...N"){
-		var tablecols:=self.destination.map entity2Table().columns->asSet() ;
+		var tablecols:=self.destination.map entity2Table().columns->asOrderedSet() ;
 		
-		var relkeycols:=self.source.keys[Primary_keys].attributes->map attribute2Column(self.destination.map entity2Table())->asOrderedSet();
+		var relkeycols:=self.source.map entity2Table().keys->select(k|k.isPrimary).columns->map copyColumn(self.destination.map entity2Table())->asOrderedSet();
 		
 		var relcols:=self.attributes->map attribute2Column(self.destination.map entity2Table())->asOrderedSet();
 		
@@ -74,9 +75,9 @@ mapping ER::Relationship::tabulateRel(){
 		self.destination.map entity2Table().foreignKeys:=newFK;
 		
 	}else{ // si es N a 1 o si 1 a 1
-		var tablecols:=self.source.map entity2Table().columns->asSet() ;
+		var tablecols:=self.source.map entity2Table().columns->asOrderedSet() ;
 		
-		var relkeycols:=self.destination.keys[Primary_keys].attributes->map attribute2Column(self.source.map entity2Table())->asOrderedSet();
+		var relkeycols:=self.destination.map entity2Table().keys->select(k|k.isPrimary).columns->map copyColumn(self.source.map entity2Table())->asOrderedSet();
 		
 		var relcols:=self.attributes->map attribute2Column(self.source.map entity2Table())->asOrderedSet();
 		
@@ -168,7 +169,7 @@ mapping ER::Key::keyER2keyRDB(own: RDB::Table) : RDB::Key{
 		result.isPrimary:=true;
 	};
 	
-	name:=self.name;
+	name:=self.name+"_"+own.name;
 	
 	owner:=own;
 	columns:= self.attributes.map attribute2Column(owner);

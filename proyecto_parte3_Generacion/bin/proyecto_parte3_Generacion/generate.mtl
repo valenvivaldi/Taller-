@@ -1,0 +1,70 @@
+[comment encoding = UTF-8 /]
+[module generate('http://SimpleRDBMS')/]
+
+[template public generateSchema (sch : Schema)]
+[comment @main /]
+[file ('proyectoGEN'.concat('.sql'), false, 'UTF-8')]
+CREATE  SCHEMA IF NOT EXISTS [sch.name/];
+set search_path = [sch.name/];
+
+
+[genTables(sch)/]
+
+
+[/file]
+	
+[/template]
+
+
+[template public genTables (sch : Schema)]
+[for (tabla : Table | sch.tables ) separator('\n')]
+CREATE  TABLE [tabla.name/] ([generateColumns(tabla)/] [generatePK(tabla)/]
+);
+[/for]
+
+[for (tabla : Table | sch.tables ) separator('\n')]
+[foreignkeys(tabla)/]
+[/for]
+[/template]
+
+
+
+
+[template public generateColumns (t: Table) ]
+[for (col:Column | t.columns ) separator(',\n')] [col.name/] [SQLtype(col.type)/][/for]
+[/template]
+
+[template public SQLtype (t:String) ][if(t.toString().equalsIgnoreCase('String'))]varchar(50)[elseif(t.toString().equalsIgnoreCase('Integer'))]integer[elseif(t.toString().equalsIgnoreCase('Real'))]double precision[elseif(t.toString().equalsIgnoreCase('Datetime'))]date[/if][/template]
+
+
+
+
+
+[template public generatePK (t : Table) ],
+[for(pk:Key|t.keys->select(k|k.isPrimary))separator(',\n')]
+Constraint [pk.name/]  primary key ([pk_cols(pk)/])
+[/for]
+
+
+
+[/template]
+
+[template public pk_cols (aKey : Key) ]
+[for(a:Column|aKey.columns)separator(',')]
+[a.name/][/for]
+[/template]
+
+[template public foreignkeys (ta:Table) ]
+[for(fk:ForeignKey|ta.foreignKeys)separator('\n')]
+ALTER TABLE ONLY [ta.name/]
+    ADD CONSTRAINT [fk.name/] FOREIGN KEY ([fk_cols(fk)/]) REFERENCES [fk.refersTo.owner.name/]([fk.refersTo.pk_cols()/])MATCH SIMPLE
+      ON UPDATE CASCADE ON DELETE CASCADE;
+[/for]
+
+[/template]
+
+
+
+
+[template public fk_cols (aForeignKey : ForeignKey) ]
+[for(a:Column|aForeignKey.columns)separator(',')][a.name/][/for][/template]
