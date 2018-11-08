@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simplee:DiagramER xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:simplee="simpleE" xsi:schemaLocation="simpleE ../metamodelos/simpleE.ecore" name="proyecto">
-  <entities name="Person" child="//@entities.1 //@entities.3">
+  <entities name="Person" child="//@entities.1 //@entities.3" isSourceOf="//@relations.3" isDestinationOf="//@relations.3">
     <attributes name="dni" inKeys="//@entities.0/@keys.0"/>
     <attributes name="name_surname"/>
     <keys xsi:type="simplee:Primary_keys" name="pk_person" attributes="//@entities.0/@attributes.0"/>
@@ -15,9 +15,7 @@
     <attributes name="Brand"/>
     <keys xsi:type="simplee:Primary_keys" name="pkPk_car" attributes="//@entities.2/@attributes.0"/>
   </entities>
-  <entities name="Client" superclass="//@entities.0" isSourceOf="//@relations.2">
-    <attributes name="telephone" isMultivalued="true"/>
-  </entities>
+  <entities name="Client" superclass="//@entities.0" isSourceOf="//@relations.2"/>
   <entities name="FeeTarifa" isDestinationOf="//@relations.1">
     <attributes name="name" inKeys="//@entities.4/@keys.0"/>
     <keys xsi:type="simplee:Primary_keys" name="pk_fee" attributes="//@entities.4/@attributes.0"/>
@@ -32,4 +30,5 @@
     <attributes name="km" type="Integer"/>
     <attributes name="amout" type="Integer"/>
   </relations>
+  <relations name="padrino" source="//@entities.0" destination="//@entities.0" cardinality="N...N"/>
 </simplee:DiagramER>

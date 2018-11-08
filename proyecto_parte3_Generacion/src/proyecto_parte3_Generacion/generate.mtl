@@ -4,7 +4,8 @@
 [template public generateSchema (sch : Schema)]
 [comment @main /]
 [file ('proyectoGEN'.concat('.sql'), false, 'UTF-8')]
-CREATE  SCHEMA IF NOT EXISTS [sch.name/];
+DROP SCHEMA IF EXISTS [sch.name/] CASCADE ;
+CREATE  SCHEMA  [sch.name/];
 set search_path = [sch.name/];
 
 

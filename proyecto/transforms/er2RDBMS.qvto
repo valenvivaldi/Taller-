@@ -60,38 +60,31 @@ mapping ER::Attribute::multiv2Column():RDB::Column{
 
 
 mapping ER::Relationship::tabulateRel(){
-	if(self.cardinality.toString()="1...N"){
-		var tablecols:=self.destination.map entity2Table().columns->asOrderedSet() ;
-		
-		var relkeycols:=self.source.map entity2Table().keys->select(k|k.isPrimary).columns->map copyColumn(self.destination.map entity2Table())->asOrderedSet();
-		
-		var relcols:=self.attributes->map attribute2Column(self.destination.map entity2Table())->asOrderedSet();
-		
-		self.destination.map entity2Table().columns:=tablecols->union(relkeycols->union(relcols));
-		
-		
-		var newFK=self.destination.map entity2Table().foreignKeys->asSet();
-		newFK := newFK->union(self.source.map entity2Table().keys->select(k|k.isPrimary)->first().map Key2FK(self.destination.map entity2Table())->asOrderedSet());
-		self.destination.map entity2Table().foreignKeys:=newFK;
-		
-	}else{ // si es N a 1 o si 1 a 1
-		var tablecols:=self.source.map entity2Table().columns->asOrderedSet() ;
-		
-		var relkeycols:=self.destination.map entity2Table().keys->select(k|k.isPrimary).columns->map copyColumn(self.source.map entity2Table())->asOrderedSet();
-		
-		var relcols:=self.attributes->map attribute2Column(self.source.map entity2Table())->asOrderedSet();
-		
-		
-		
-		
-		self.source.map entity2Table().columns:=tablecols->union(relkeycols->union(relcols));
-		
-		var newFK=self.source.map entity2Table().foreignKeys->asSet();
-		newFK := newFK->union(self.destination.map entity2Table().keys->select(k|k.isPrimary)->first().map Key2FK(self.source.map entity2Table())->asOrderedSet());
-		self.source.map entity2Table().foreignKeys:=newFK;
-	};
-
 	
+	//caso n..1, 1.1
+	var emisor = self.destination; //tabulado es el que recibe los atributos de la relacion y el otro es emisor
+	var tabulado = self.source;
+	
+	if(self.cardinality.toString()="1...N"){ //caso 1.N
+		tabulado := self.destination;
+		emisor := self.source;
+	
+	};	
+	
+		
+		var tablecols:=tabulado.map entity2Table().columns->asOrderedSet() ;
+		
+		var relkeycols:=emisor.map entity2Table().keys->select(k|k.isPrimary).columns->map copyColumn(self.name,tabulado.map entity2Table())->asOrderedSet();
+		
+		var relcols:=self.attributes->map attribute2Column(self.name,tabulado.map entity2Table())->asOrderedSet();
+		
+		tabulado.map entity2Table().columns:=tablecols->union(relkeycols->union(relcols));
+		
+		
+		var newFK=tabulado.map entity2Table().foreignKeys->asSet();
+		newFK := newFK->union(emisor.map entity2Table().keys->select(k|k.isPrimary)->first().map Key2FK(self.name,tabulado.map entity2Table())->asOrderedSet());
+		tabulado.map entity2Table().foreignKeys:=newFK;
+		
 }
 
 
@@ -103,17 +96,88 @@ mapping RDB::Key::Key2FK(own: RDB::Table):RDB::ForeignKey{
 
 }
 
+mapping RDB::Key::Key2FK(prefix:String,own: RDB::Table):RDB::ForeignKey{
+	name:="FK_to_"+self.owner.name+"_"+self.name;
+	refersTo:=self;
+	columns:=self.columns->map copyColumn(prefix,own);
+	owner:=own;
+
+}
+
+
 
 mapping ER::Relationship::relNN2table() : RDB::Table{
 	name:=self.name;
 	schema:=self.diagram.map diagrama2Schema();
-	columns:=self.obtenerColumnasRelNN()->map attribute2Column(result);
+	columns:=self.obtenerColumnasRelNN(result);
 	keys:=self.map obtainPKofRelNN()->asOrderedSet();
+	foreignKeys:=self.map obtainFKofRelNN()->asOrderedSet()
 	
-	foreignKeys:=self.source.map entity2Table().keys->select(k|k.isPrimary)->first().map Key2FK(result);
-	foreignKeys := foreignKeys->union(self.destination.map entity2Table().keys->select(k|k.isPrimary)->first().map Key2FK(result)->asOrderedSet());
-		
+	
+	
 }
+
+helper ER::Relationship::obtainFKofRelNN() : Set(RDB::ForeignKey){
+
+
+var own:=self.map relNN2table();
+
+if(self.source=self.destination){
+	var namefk1:="FK_"+self.name+"_source";
+	var namefk2:="FK_"+self.name+"_destination";
+	var colsfk1 :=self.source.obtainKeys()[Primary_keys]->asOrderedSet()->first().attributes->map attribute2Column("source",self.map relNN2table());
+	var colsfk2 :=self.destination.obtainKeys()[Primary_keys]->asOrderedSet()->first().attributes->map attribute2Column("destination",self.map relNN2table());
+	var fk :=object RDB::ForeignKey{
+					name:=namefk1;
+					refersTo:=self.source.map entity2Table().keys->select(k|k.isPrimary)->first();
+					columns:=colsfk1;
+					owner:=own;			
+				};
+	var fk2:=object RDB::ForeignKey{
+					name:=namefk2;
+					refersTo:=self.destination.map entity2Table().keys->select(k|k.isPrimary)->first();
+					columns:=colsfk2;
+					owner:=own;			
+				};
+	
+	var fks := fk->asSet();
+	fks := fks->union(fk2->asSet());
+	return fks;
+	
+	
+	}else{
+	var namefk1:="FK_"+self.name+"_"+self.source.name;
+	var namefk2:="FK_"+self.name+"_"+self.destination.name;
+	var colsfk1 :=self.source.obtainKeys()[Primary_keys].attributes-> map  attribute2Column(self.map relNN2table());
+	var colsfk2 :=self.destination.obtainKeys()[Primary_keys].attributes-> map  attribute2Column(self.map relNN2table());
+	
+	var fk :=object RDB::ForeignKey{
+					name:=namefk1;
+					refersTo:=self.source.map entity2Table().keys->select(k|k.isPrimary)->first();
+					columns:=colsfk1;
+					owner:=own;			
+				};
+	var fk2:=object RDB::ForeignKey{
+					name:=namefk2;
+					refersTo:=self.destination.map entity2Table().keys->select(k|k.isPrimary)->first();
+					columns:=colsfk2;
+					owner:=own;			
+				};
+	
+	var fks := fk->asSet();
+	fks := fks->union(fk2->asSet());
+	
+	return fks;
+	};
+	
+	
+return null;
+
+}
+
+
+
+
 
 
 
@@ -121,20 +185,42 @@ mapping ER::Relationship::obtainPKofRelNN() : RDB::Key{
 result.isPrimary:=true;
 result.name:="PK"+self.name;
 result.owner:=self.map relNN2table();
-var col :=self.source.obtainKeys()[Primary_keys].attributes;
+
+if(self.source=self.destination){
+	var col :=self.source.obtainKeys()[Primary_keys]->asOrderedSet()->first().attributes->map attribute2Column("source",self.map relNN2table());
+	col :=col->union(self.destination.obtainKeys()[Primary_keys]->asOrderedSet()->first().attributes->map attribute2Column("destination",self.map relNN2table()));
+	result.columns:= col;
+	
+	}else{
+	
+	var col :=self.source.obtainKeys()[Primary_keys].attributes;
 	col :=col->union(self.destination.obtainKeys()[Primary_keys].attributes);
-result.columns:= col-> map  attribute2Column(self.map relNN2table());
+	result.columns:= col-> map  attribute2Column(self.map relNN2table());
+	}
+
 
 
 }
 
 
 
-query ER::Relationship::obtenerColumnasRelNN() : Set(ER::Attribute)
+query ER::Relationship::obtenerColumnasRelNN(own :RDB::Table) : Set(RDB::Column)
 {
-	var col:=self.source.obtainKeys()[Primary_keys].attributes;
-	col := col->union(self.destination.obtainKeys()[Primary_keys].attributes);
-	col := col->union(self.attributes);
+	var col := self.attributes->asOrderedSet()->map attribute2Column(own);
+	
+	if(self.source=self.destination){
+		col:=col->union(self.source.obtainKeys()[Primary_keys]->asOrderedSet()->first().attributes->attribute2Column("source",own));
+		col := col->union(self.destination.obtainKeys()[Primary_keys]->asOrderedSet()->first().attributes->attribute2Column("destination",own));
+	
+	}else{
+	
+	 col:=col->union(self.source.obtainKeys()[Primary_keys]->asOrderedSet()->first().attributes->attribute2Column(own));
+	 col := col->union(self.destination.obtainKeys()[Primary_keys]->asOrderedSet()->first().attributes->attribute2Column(own));
+	};
+	
+	
+	
+	
 	return (col->asOrderedSet());
 	
 }
@@ -175,10 +261,21 @@ mapping ER::Key::keyER2keyRDB(own: RDB::Table) : RDB::Key{
 	columns:= self.attributes.map attribute2Column(owner);
 }
 
+
+
 mapping ER::Attribute::attribute2Column( own:RDB::Table) : RDB::Column{
 	name:=self.name;
 	if(self.ofRelationship<>null){
-	name:=self.ofRelationship.name+"_"+name;
+		name:=self.ofRelationship.name+"_"+name;
+	};
+	
+	type:=self.type.toString();
+	owner:=own;
+}
+mapping ER::Attribute::attribute2Column(prefix:String, own:RDB::Table) : RDB::Column{
+	name:=prefix+"_"+self.name;
+	if(self.ofRelationship<>null){
+		name:=self.ofRelationship.name+"_"+name;
 	};
 	
 	type:=self.type.toString();
@@ -187,12 +284,16 @@ mapping ER::Attribute::attribute2Column( own:RDB::Table) : RDB::Column{
 
 mapping  RDB::Column::copyColumn( own:RDB::Table) : RDB::Column{
 	name:=self.name;
+	type:=self.type;
+	owner:=own;
+}
+mapping  RDB::Column::copyColumn(prefix:String, own:RDB::Table) : RDB::Column{
+	name:=prefix+"_"+self.name;
 	
 	
 	type:=self.type;
 	owner:=own;
 }
-
 
 
 query ER::Entity:: obtainRelationships() : Set(ER::Relationship){
