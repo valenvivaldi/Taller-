@@ -1,51 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simplerdbms:Schema xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:simplerdbms="http://SimpleRDBMS" xsi:schemaLocation="http://SimpleRDBMS ../metamodelos/SimpleRDBMS.ecore" name="proyecto">
-  <tables name="CarAuto">
-    <columns name="kilometers" type="Integer"/>
-    <columns name="Brand" type="String"/>
-    <columns name="isOwner_dni" type="String" foreignKeys="//@tables.0/@foreignKeys.0"/>
-    <columns name="patent" type="String" keys="//@tables.0/@keys.0"/>
-    <columns name="Model" type="String"/>
-    <keys name="pkPk_car_CarAuto" columns="//@tables.0/@columns.3" isPrimary="true"/>
-    <foreignKeys name="FK_to_Partner_pk_person_Partner" refersTo="//@tables.6/@keys.0" columns="//@tables.0/@columns.2"/>
+  <tables name="Socio">
+    <columns name="CantidadAutos" type="Integer"/>
+    <columns name="Dni" type="String" foreignKeys="//@tables.0/@foreignKeys.0" keys="//@tables.0/@keys.0"/>
+    <keys name="pk_persona_Socio" columns="//@tables.0/@columns.1" isPrimary="true"/>
+    <foreignKeys name="fk_herenciaSocio_Persona" refersTo="//@tables.4/@keys.0" columns="//@tables.0/@columns.1"/>
   </tables>
-  <tables name="PricePerKm">
-    <columns name="PricePerKm_amount" type="Real"/>
-    <columns name="patent" type="String" foreignKeys="//@tables.1/@foreignKeys.1" keys="//@tables.1/@keys.0"/>
-    <columns name="name" type="String" foreignKeys="//@tables.1/@foreignKeys.0" keys="//@tables.1/@keys.0"/>
-    <keys name="PKPricePerKm" columns="//@tables.1/@columns.2 //@tables.1/@columns.1" isPrimary="true"/>
-    <foreignKeys name="FK_PricePerKm_FeeTarifa" refersTo="//@tables.3/@keys.0" columns="//@tables.1/@columns.2"/>
-    <foreignKeys name="FK_PricePerKm_CarAuto" refersTo="//@tables.0/@keys.0" columns="//@tables.1/@columns.1"/>
+  <tables name="Alquiler">
+    <columns name="Contrata_Dni" type="String" foreignKeys="//@tables.1/@foreignKeys.0"/>
+    <columns name="fecha" type="Datetime"/>
+    <columns name="provee_Patente" type="String" foreignKeys="//@tables.1/@foreignKeys.1"/>
+    <columns name="codigo" type="String" keys="//@tables.1/@keys.0"/>
+    <columns name="monto" type="Real"/>
+    <columns name="kmRecorridos" type="String"/>
+    <keys name="pk_alquiler_Alquiler" columns="//@tables.1/@columns.3" isPrimary="true"/>
+    <foreignKeys name="FK_to_Cliente_pk_persona_Cliente" refersTo="//@tables.5/@keys.0" columns="//@tables.1/@columns.0"/>
+    <foreignKeys name="FK_to_Auto_pk_auto_Auto" refersTo="//@tables.3/@keys.0" columns="//@tables.1/@columns.2"/>
   </tables>
-  <tables name="Person">
-    <columns name="dni" type="String" keys="//@tables.2/@keys.0"/>
-    <columns name="name_surname" type="String"/>
-    <keys name="pk_person_Person" columns="//@tables.2/@columns.0" isPrimary="true"/>
+  <tables name="Multivalue_aaaaaaaaa">
+    <columns name="aaaaaaaaa" type="String" keys="//@tables.2/@keys.0"/>
+    <columns name="Dni" type="String" keys="//@tables.2/@keys.0"/>
+    <keys name="pk_multiv_aaaaaaaaa" columns="//@tables.2/@columns.0 //@tables.2/@columns.1" isPrimary="true"/>
+    <foreignKeys name="FK_to_Persona_pk_persona_Persona" refersTo="//@tables.4/@keys.0" columns="//@tables.4/@columns.0"/>
   </tables>
-  <tables name="FeeTarifa">
-    <columns name="name" type="String" keys="//@tables.3/@keys.0"/>
-    <keys name="pk_fee_FeeTarifa" columns="//@tables.3/@columns.0" isPrimary="true"/>
+  <tables name="Auto">
+    <columns name="Patente" type="String" keys="//@tables.3/@keys.0"/>
+    <columns name="Modelo" type="String"/>
+    <columns name="Dueño_Dni" type="String" foreignKeys="//@tables.3/@foreignKeys.0"/>
+    <columns name="km" type="Integer"/>
+    <columns name="Marca" type="String"/>
+    <keys name="pk_auto_Auto" columns="//@tables.3/@columns.0" isPrimary="true"/>
+    <foreignKeys name="FK_to_Socio_pk_persona_Socio" refersTo="//@tables.0/@keys.0" columns="//@tables.3/@columns.2"/>
   </tables>
-  <tables name="Client">
-    <columns name="Rental_Rental_date" type="String"/>
-    <columns name="Rental_Rental_km" type="Integer"/>
-    <columns name="Rental_Rental_amout" type="Integer"/>
-    <columns name="Rental_patent" type="String" foreignKeys="//@tables.4/@foreignKeys.0"/>
-    <columns name="dni" type="String" keys="//@tables.4/@keys.0"/>
-    <columns name="Rental_Rental_code" type="Integer"/>
-    <keys name="pk_person_Client" columns="//@tables.4/@columns.4" isPrimary="true"/>
-    <foreignKeys name="FK_to_CarAuto_pkPk_car_CarAuto" refersTo="//@tables.0/@keys.0" columns="//@tables.4/@columns.3"/>
+  <tables name="Persona">
+    <columns name="Dni" type="String" foreignKeys="//@tables.2/@foreignKeys.0" keys="//@tables.4/@keys.0"/>
+    <columns name="NmbreYap" type="String"/>
+    <keys name="pk_persona_Persona" columns="//@tables.4/@columns.0" isPrimary="true"/>
   </tables>
-  <tables name="padrino">
-    <columns name="source_dni" type="String" foreignKeys="//@tables.5/@foreignKeys.1" keys="//@tables.5/@keys.0"/>
-    <columns name="destination_dni" type="String" foreignKeys="//@tables.5/@foreignKeys.0" keys="//@tables.5/@keys.0"/>
-    <keys name="PKpadrino" columns="//@tables.5/@columns.0 //@tables.5/@columns.1" isPrimary="true"/>
-    <foreignKeys name="FK_padrino_destination" refersTo="//@tables.2/@keys.0" columns="//@tables.5/@columns.1"/>
-    <foreignKeys name="FK_padrino_source" refersTo="//@tables.2/@keys.0" columns="//@tables.5/@columns.0"/>
+  <tables name="Cliente">
+    <columns name="Dni" type="String" foreignKeys="//@tables.5/@foreignKeys.0" keys="//@tables.5/@keys.0"/>
+    <keys name="pk_persona_Cliente" columns="//@tables.5/@columns.0" isPrimary="true"/>
+    <foreignKeys name="fk_herenciaCliente_Persona" refersTo="//@tables.4/@keys.0" columns="//@tables.5/@columns.0"/>
   </tables>
-  <tables name="Partner">
-    <columns name="numberOfCars" type="Integer"/>
-    <columns name="dni" type="String" keys="//@tables.6/@keys.0"/>
-    <keys name="pk_person_Partner" columns="//@tables.6/@columns.1" isPrimary="true"/>
+  <tables name="Tarifa">
+    <columns name="codigo" type="String" keys="//@tables.6/@keys.0"/>
+    <columns name="descripcion" type="String"/>
+    <keys name="pk_tarifa_Tarifa" columns="//@tables.6/@columns.0" isPrimary="true"/>
+  </tables>
+  <tables name="Escala_tarifaria">
+    <columns name="Escala_tarifaria_valor" type="Real"/>
+    <columns name="Auto_Patente" type="String" foreignKeys="//@tables.7/@foreignKeys.1" keys="//@tables.7/@keys.0"/>
+    <columns name="Tarifa_codigo" type="String" foreignKeys="//@tables.7/@foreignKeys.0" keys="//@tables.7/@keys.0"/>
+    <keys name="PKEscala_tarifaria" columns="//@tables.7/@columns.1 //@tables.7/@columns.2" isPrimary="true"/>
+    <foreignKeys name="FK_Escala_tarifaria_Tarifa" refersTo="//@tables.6/@keys.0" columns="//@tables.7/@columns.2"/>
+    <foreignKeys name="FK_Escala_tarifaria_Auto" refersTo="//@tables.3/@keys.0" columns="//@tables.7/@columns.1"/>
   </tables>
 </simplerdbms:Schema>
