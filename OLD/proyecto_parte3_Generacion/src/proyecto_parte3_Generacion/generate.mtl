@@ -58,7 +58,8 @@ Constraint [pk.name/]  primary key ([pk_cols(pk)/])
 [template public foreignkeys (ta:Table) ]
 [for(fk:ForeignKey|ta.foreignKeys)separator('\n')]
 ALTER TABLE ONLY [ta.name/]
-    ADD CONSTRAINT [fk.name/] FOREIGN KEY ([fk_cols(fk)/]) REFERENCES [fk.refersTo.owner.name/]([fk.refersTo.pk_cols()/])MATCH SIMPLE;
+    ADD CONSTRAINT [fk.name/] FOREIGN KEY ([fk_cols(fk)/]) REFERENCES [fk.refersTo.owner.name/]([fk.refersTo.pk_cols()/])MATCH SIMPLE
+      ON UPDATE CASCADE ON DELETE CASCADE;
 [/for]
 
 [/template]

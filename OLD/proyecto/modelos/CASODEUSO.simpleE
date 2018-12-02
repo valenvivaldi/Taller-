@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simplee:DiagramER xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:simplee="simpleE" xsi:schemaLocation="simpleE ../metamodelos/simpleE.ecore" name="proyecto">
+  <entities name="Persona" child="//@entities.1 //@entities.3">
+    <attributes name="Dni" inKeys="//@entities.0/@keys.0"/>
+    <attributes name="NmbreYap"/>
+    <attributes name="aaaaaaaaa" isMultivalued="true"/>
+    <keys xsi:type="simplee:Primary_keys" name="pk_persona" attributes="//@entities.0/@attributes.0"/>
+  </entities>
+  <entities name="Cliente" superclass="//@entities.0" isSourceOf="//@relations.1"/>
+  <entities name="Auto" isSourceOf="//@relations.3 //@relations.0" isDestinationOf="//@relations.2">
+    <attributes name="Patente" inKeys="//@entities.2/@keys.0"/>
+    <attributes name="Modelo"/>
+    <attributes name="Marca"/>
+    <attributes name="km" type="Integer"/>
+    <keys xsi:type="simplee:Primary_keys" name="pk_auto" attributes="//@entities.2/@attributes.0"/>
+  </entities>
+  <entities name="Socio" superclass="//@entities.0" isDestinationOf="//@relations.0">
+    <attributes name="CantidadAutos" type="Integer"/>
+  </entities>
+  <entities name="Alquiler" isSourceOf="//@relations.2" isDestinationOf="//@relations.1">
+    <attributes name="codigo" inKeys="//@entities.4/@keys.0"/>
+    <attributes name="monto" type="Real"/>
+    <attributes name="fecha" type="Datetime"/>
+    <attributes name="kmRecorridos"/>
+    <keys xsi:type="simplee:Primary_keys" name="pk_alquiler" attributes="//@entities.4/@attributes.0"/>
+  </entities>
+  <entities name="Tarifa" isDestinationOf="//@relations.3">
+    <attributes name="codigo" inKeys="//@entities.5/@keys.0"/>
+    <attributes name="descripcion"/>
+    <keys xsi:type="simplee:Primary_keys" name="pk_tarifa" attributes="//@entities.5/@attributes.0"/>
+  </entities>
+  <relations name="Dueño" source="//@entities.2" destination="//@entities.3" cardinality="N...1"/>
+  <relations name="Contrata" source="//@entities.1" destination="//@entities.4" cardinality="1...N"/>
+  <relations name="provee" source="//@entities.4" destination="//@entities.2" cardinality="N...1"/>
+  <relations name="Escala_tarifaria" source="//@entities.2" destination="//@entities.5" cardinality="N...N">
+    <attributes name="valor" type="Real"/>
+  </relations>
+</simplee:DiagramER>

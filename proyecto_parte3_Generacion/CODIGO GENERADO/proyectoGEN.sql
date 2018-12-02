@@ -1,92 +1,115 @@
-CREATE  SCHEMA IF NOT EXISTS proyecto;
+DROP SCHEMA IF EXISTS proyecto CASCADE ;
+CREATE  SCHEMA  proyecto;
 set search_path = proyecto;
 
 
-CREATE  TABLE PricePerKm ( patent varchar(50),
- PricePerKm_amount double precision,
- name varchar(50) ,
- Constraint PKPricePerKm  primary key (patent,name)
+CREATE  TABLE Escala_tarifaria ( Escala_tarifaria_valor double precision,
+ Patente varchar(50),
+ codigo varchar(50) ,
+ Constraint PKEscala_tarifaria  primary key (Patente,codigo)
  
  
  
 );
 
-CREATE  TABLE Multivalue_telephone ( telephone varchar(50),
- dni varchar(50) ,
- Constraint pk_multiv_telephone  primary key (telephone,dni)
+CREATE  TABLE Multivalue_aaaaaaaaa ( Dni varchar(50),
+ aaaaaaaaa varchar(50) ,
+ Constraint pk_multiv_aaaaaaaaa  primary key (Dni,aaaaaaaaa)
  
  
  
 );
 
-CREATE  TABLE FeeTarifa ( name varchar(50) ,
-Constraint pk_fee_FeeTarifa  primary key (name)
+CREATE  TABLE Cliente ( Dni varchar(50) ,
+Constraint pk_persona_Cliente  primary key (Dni)
 
 
 
 );
 
-CREATE  TABLE CarAuto ( Model varchar(50),
- patent varchar(50),
- dni varchar(50),
- Brand varchar(50),
- kilometers integer ,
- Constraint pkPk_car_CarAuto  primary key (patent)
+CREATE  TABLE Socio ( CantidadAutos integer,
+ Dni varchar(50) ,
+ Constraint pk_persona_Socio  primary key (Dni)
  
  
  
 );
 
-CREATE  TABLE Client ( name_surname varchar(50),
- Rental_code integer,
- Rental_km integer,
- Rental_amout integer,
- dni varchar(50),
- patent varchar(50),
- Rental_date varchar(50) ,
- Constraint pk_person_Client  primary key (dni)
+CREATE  TABLE Alquiler ( provee_Patente varchar(50),
+ codigo varchar(50),
+ monto double precision,
+ Contrata_Dni varchar(50),
+ fecha date,
+ kmRecorridos varchar(50) ,
+ Constraint pk_alquiler_Alquiler  primary key (codigo)
  
  
  
 );
 
-CREATE  TABLE Partner ( name_surname varchar(50),
- dni varchar(50),
- numberOfCars integer ,
- Constraint pk_person_Partner  primary key (dni)
+CREATE  TABLE Auto ( km integer,
+ Modelo varchar(50),
+ Marca varchar(50),
+ Patente varchar(50),
+ Dueño_Dni varchar(50) ,
+ Constraint pk_auto_Auto  primary key (Patente)
  
  
  
 );
 
-ALTER TABLE ONLY PricePerKm
-    ADD CONSTRAINT FK_to_FeeTarifa_pk_fee_FeeTarifa FOREIGN KEY (name) REFERENCES FeeTarifa(name)MATCH SIMPLE
-      ON UPDATE CASCADE ON DELETE CASCADE;
+CREATE  TABLE Tarifa ( codigo varchar(50),
+ descripcion varchar(50) ,
+ Constraint pk_tarifa_Tarifa  primary key (codigo)
+ 
+ 
+ 
+);
 
-ALTER TABLE ONLY PricePerKm
-    ADD CONSTRAINT FK_to_CarAuto_pkPk_car_CarAuto FOREIGN KEY (patent) REFERENCES CarAuto(patent)MATCH SIMPLE
-      ON UPDATE CASCADE ON DELETE CASCADE;
+CREATE  TABLE Persona ( Dni varchar(50),
+ NmbreYap varchar(50) ,
+ Constraint pk_persona_Persona  primary key (Dni)
+ 
+ 
+ 
+);
 
+ALTER TABLE ONLY Escala_tarifaria
+    ADD CONSTRAINT FK_Escala_tarifaria_Auto FOREIGN KEY (Patente) REFERENCES Auto(Patente)MATCH SIMPLE;
 
-
-ALTER TABLE ONLY Multivalue_telephone
-    ADD CONSTRAINT FK_to_Client_pk_person_Client FOREIGN KEY (dni) REFERENCES Client(dni)MATCH SIMPLE
-      ON UPDATE CASCADE ON DELETE CASCADE;
-
-
-
-
-
-
-ALTER TABLE ONLY CarAuto
-    ADD CONSTRAINT FK_to_Partner_pk_person_Partner FOREIGN KEY (dni) REFERENCES Partner(dni)MATCH SIMPLE
-      ON UPDATE CASCADE ON DELETE CASCADE;
-
+ALTER TABLE ONLY Escala_tarifaria
+    ADD CONSTRAINT FK_Escala_tarifaria_Tarifa FOREIGN KEY (codigo) REFERENCES Tarifa(codigo)MATCH SIMPLE;
 
 
-ALTER TABLE ONLY Client
-    ADD CONSTRAINT FK_to_CarAuto_pkPk_car_CarAuto FOREIGN KEY (patent) REFERENCES CarAuto(patent)MATCH SIMPLE
-      ON UPDATE CASCADE ON DELETE CASCADE;
+
+ALTER TABLE ONLY Multivalue_aaaaaaaaa
+    ADD CONSTRAINT FK_to_Persona_pk_persona_Persona FOREIGN KEY (Dni) REFERENCES Persona(Dni)MATCH SIMPLE;
+
+
+
+ALTER TABLE ONLY Cliente
+    ADD CONSTRAINT fk_herenciaCliente_Persona FOREIGN KEY (Dni) REFERENCES Persona(Dni)MATCH SIMPLE;
+
+
+
+ALTER TABLE ONLY Socio
+    ADD CONSTRAINT fk_herenciaSocio_Persona FOREIGN KEY (Dni) REFERENCES Persona(Dni)MATCH SIMPLE;
+
+
+
+ALTER TABLE ONLY Alquiler
+    ADD CONSTRAINT FK_to_Cliente_pk_persona_Cliente FOREIGN KEY (Contrata_Dni) REFERENCES Cliente(Dni)MATCH SIMPLE;
+
+ALTER TABLE ONLY Alquiler
+    ADD CONSTRAINT FK_to_Auto_pk_auto_Auto FOREIGN KEY (provee_Patente) REFERENCES Auto(Patente)MATCH SIMPLE;
+
+
+
+ALTER TABLE ONLY Auto
+    ADD CONSTRAINT FK_to_Socio_pk_persona_Socio FOREIGN KEY (Dueño_Dni) REFERENCES Socio(Dni)MATCH SIMPLE;
+
+
+
 
 
 

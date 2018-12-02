@@ -91,6 +91,6 @@
     <eLiterals name="String"/>
     <eLiterals name="Integer" value="1"/>
     <eLiterals name="Real" value="2"/>
-    <eLiterals name="Datetime" value="3" literal="Datetime"/>
+    <eLiterals name="Datatime" value="3" literal=""/>
   </eClassifiers>
 </ecore:EPackage>
